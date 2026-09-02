@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holy Sirup Umrechner</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #f59e0b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 6px;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        p.subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        input.has-prefix {
+            padding-left: 42px;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .results {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #334155;
+        }
+
+        .result-card {
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-card.highlight {
+            border: 1px solid var(--primary);
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .result-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .result-value.primary {
+            color: var(--primary);
+        }
+
+        .result-value.accent {
+            color: var(--accent-blue);
+        }
+
+        .warning {
+            color: var(--danger);
+            font-size: 13px;
+            text-align: center;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--danger);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Holy Sirup Umrechner</h1>
+    <p class="subtitle">Mische fremden Sirup passend für deine Holy Kartusche</p>
+
+    <div class="form-group">
+        <label for="origRatio">Hersteller-Verhältnis (1 : X)</label>
+        <div class="input-wrapper">
+            <span class="input-prefix">1 :</span>
+            <input type="number" id="origRatio" class="has-prefix" value="140" min="1" step="1">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="targetRatio">Holy Ziel-Verhältnis (1 : X)</label>
+        <div class="input-wrapper">
+            <span class="input-prefix">1 :</span>
+            <input type="number" id="targetRatio" class="has-prefix" value="24" min="1" step="1">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="cartridgeVolume">Kartuschen-Volumen (ml)</label>
+        <input type="number" id="cartridgeVolume" value="85" min="1" step="1">
+    </div>
+
+    <div id="warningBox" class="warning">
+        Der Quellsirup ist schwächer als 1:24 und kann nicht weiter mit Wasser verdünnt werden!
+    </div>
+
+    <div class="results" id="resultsBox">
+        <div class="result-card highlight">
+            <div class="result-label">Sirup einfüllen</div>
+            <div class="result-value primary" id="syrupResult">14.57 ml</div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-label">Wasser auffüllen</div>
+            <div class="result-value accent" id="waterResult">70.43 ml</div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-label">Ergibt Fertiggetränk</div>
+            <div class="result-value" id="totalDrinkResult">2.04 Liter</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        const origRatio = parseFloat(document.getElementById('origRatio').value);
+        const targetRatio = parseFloat(document.getElementById('targetRatio').value);
+        const cartridgeVolume = parseFloat(document.getElementById('cartridgeVolume').value);
+
+        const warningBox = document.getElementById('warningBox');
+        const resultsBox = document.getElementById('resultsBox');
+
+        if (!origRatio || !targetRatio || !cartridgeVolume || origRatio <= 0 || targetRatio <= 0 || cartridgeVolume <= 0) {
+            return;
+        }
+
+        if (origRatio < targetRatio) {
+            warningBox.style.display = 'block';
+            resultsBox.style.display = 'none';
+            return;
+        }
+
+        warningBox.style.display = 'none';
+        resultsBox.style.display = 'block';
+
+        const totalDrinkMl = cartridgeVolume * targetRatio;
+        const requiredSyrupMl = totalDrinkMl / origRatio;
+        const requiredWaterMl = cartridgeVolume - requiredSyrupMl;
+
+        document.getElementById('syrupResult').innerText = requiredSyrupMl.toFixed(2) + ' ml';
+        document.getElementById('waterResult').innerText = requiredWaterMl.toFixed(2) + ' ml';
+        document.getElementById('totalDrinkResult').innerText = (totalDrinkMl / 1000).toFixed(2) + ' Liter';
+    }
+
+    document.getElementById('origRatio').addEventListener('input', calculate);
+    document.getElementById('targetRatio').addEventListener('input', calculate);
+    document.getElementById('cartridgeVolume').addEventListener('input', calculate);
+
+    calculate();
+</script>
+
+</body>
+</html>
