@@ -276,7 +276,8 @@
 <div class="container">
     <div class="logo-container" id="logoContainer"></div>
 
-    <h1>Sirup Umrechner</h1>
+    <!-- Überschrift wird nun dynamisch per JavaScript befüllt -->
+    <h1 id="pageTitle">Sirup Umrechner</h1>
     <p class="subtitle">Mischungsverhältnisse anpassen & speichern</p>
 
     <div class="preset-section">
@@ -357,7 +358,6 @@
             <div class="result-value accent" id="waterResult">0 ml</div>
         </div>
 
-        <!-- NEUES FELD FÜR DIE GESAMTMENGE IM BEHÄLTER -->
         <div class="result-card">
             <div class="result-label">Behälter-Füllmenge (Gesamt)</div>
             <div class="result-value" id="containerTotalResult">0 ml</div>
@@ -426,6 +426,9 @@
             document.getElementById('targetRatio').value = preset.targetRatio;
             document.getElementById('cartridgeVolume').value = preset.volume;
             
+            // Überschrift auf den Namen der ausgewählten Vorlage setzen
+            document.getElementById('pageTitle').innerText = preset.name;
+
             const logoContainer = document.getElementById('logoContainer');
             if (preset.logo) {
                 logoContainer.innerHTML = `<img src="${preset.logo}" class="logo-img" alt="Logo">`;
