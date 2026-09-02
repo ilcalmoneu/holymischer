@@ -271,6 +271,7 @@
         <label style="margin-bottom: 6px;">Vorlage auswählen</label>
         <div class="preset-row">
             <select id="presetSelect" onchange="loadSelectedPreset()"></select>
+            <button class="btn btn-danger" id="deletePresetBtn" onclick="deleteCurrentPreset()" style="display: none;" title="Vorlage löschen">✕</button>
         </div>
         
         <div style="margin-top: 10px;">
@@ -407,7 +408,29 @@
                 logoContainer.innerHTML = '';
             }
 
+            // Löschen-Button nur anzeigen, wenn es eine eigene Vorlage ist
+            const deleteBtn = document.getElementById('deletePresetBtn');
+            const isCustom = customPresets.some(p => p.id === selectedId);
+            deleteBtn.style.display = isCustom ? 'block' : 'none';
+
             calculate();
+        }
+    }
+
+    function deleteCurrentPreset() {
+        const select = document.getElementById('presetSelect');
+        const selectedId = select.value;
+
+        const isCustom = customPresets.some(p => p.id === selectedId);
+        if (!isCustom) return;
+
+        if (confirm('Möchtest du diese eigene Vorlage wirklich löschen?')) {
+            customPresets = customPresets.filter(p => p.id !== selectedId);
+            localStorage.setItem('custom_syrup_presets', JSON.stringify(customPresets));
+            presets = [...DEFAULT_PRESETS, ...customPresets];
+
+            renderPresetDropdown();
+            loadSelectedPreset();
         }
     }
 
