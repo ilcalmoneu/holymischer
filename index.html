@@ -262,7 +262,7 @@
 
 <div class="container">
     <div class="logo-container" id="logoContainer">
-        </div>
+    </div>
 
     <h1>Sirup Umrechner</h1>
     <p class="subtitle">Mischungsverhältnisse anpassen & speichern</p>
@@ -348,7 +348,7 @@
 <script>
     const DEFAULT_PRESETS = [
         { 
-            id: 'Pfanner Zero Sirup', 
+            id: 'PfannerZeroSirup', 
             name: 'Pfanner Zero Sirup', 
             origRatio: 140,
             targetRatio: 24, 
@@ -356,7 +356,7 @@
             logo: 'Pfanner_Zero_Sirup.png' 
         },
         { 
-            id: 'More Zerup', 
+            id: 'MoreZerup', 
             name: 'More Zerup', 
             origRatio: 154,
             targetRatio: 24, 
@@ -365,7 +365,8 @@
         }
     ];
 
-    let presets = JSON.parse(localStorage.getItem('syrup_presets')) || DEFAULT_PRESETS;
+    let customPresets = JSON.parse(localStorage.getItem('custom_syrup_presets')) || [];
+    let presets = [...DEFAULT_PRESETS, ...customPresets];
     let tempLogoBase64 = '';
 
     function init() {
@@ -481,8 +482,9 @@
         };
 
         try {
-            presets.push(newPreset);
-            localStorage.setItem('syrup_presets', JSON.stringify(presets));
+            customPresets.push(newPreset);
+            localStorage.setItem('custom_syrup_presets', JSON.stringify(customPresets));
+            presets = [...DEFAULT_PRESETS, ...customPresets];
         } catch (e) {
             alert('Der Speicherplatz des Browsers ist voll.');
             return;
