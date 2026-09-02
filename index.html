@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!-- PWA & Web App Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
 
-    <!-- iOS Web App Einstellungen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sirup Calc">
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-	<!-- iOS Home Screen Icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <title>Sirup Umrechner & Vorlagen</title>
     <style>
         :root {
@@ -267,13 +263,18 @@
             border: 1px solid var(--danger);
             display: none;
         }
+
+        .info-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="logo-container" id="logoContainer">
-    </div>
+    <div class="logo-container" id="logoContainer"></div>
 
     <h1>Sirup Umrechner</h1>
     <p class="subtitle">Mischungsverhältnisse anpassen & speichern</p>
@@ -335,13 +336,20 @@
         <input type="number" id="cartridgeVolume" value="85" min="1" step="1">
     </div>
 
+    <!-- NEUES OPTIONALES FELD -->
+    <div class="form-group">
+        <label for="availableSyrup" style="margin-bottom: 2px;">Verfügbarer Sirup (ml) - optional</label>
+        <input type="number" id="availableSyrup" placeholder="z. B. 12 (leer lassen für volles Rezept)" min="0" step="0.1">
+        <div class="info-text">Falls nur noch ein Rest in der Flasche ist</div>
+    </div>
+
     <div id="warningBox" class="warning">
         Der Quellsirup ist schwächer als das Ziel-Verhältnis und kann nicht weiter verdünnt werden!
     </div>
 
     <div class="results" id="resultsBox">
         <div class="result-card highlight">
-            <div class="result-label">Sirup einfüllen</div>
+            <div class="result-label" id="syrupLabel">Sirup einfüllen</div>
             <div class="result-value primary" id="syrupResult">0 ml</div>
         </div>
 
@@ -365,7 +373,7 @@
             origRatio: 140,
             targetRatio: 24, 
             volume: 85, 
-            logo: 'images/Pfanner_Zero_Sirup.png' 
+            logo: 'assets/Pfanner_Zero_Sirup.png' 
         },
         { 
             id: 'MoreZerup', 
@@ -373,7 +381,7 @@
             origRatio: 154,
             targetRatio: 24, 
             volume: 85, 
-            logo: 'images/More_Zerup.png' 
+            logo: 'assets/More_Zerup.png' 
         }
     ];
 
@@ -388,6 +396,7 @@
         document.getElementById('origRatio').addEventListener('input', calculate);
         document.getElementById('targetRatio').addEventListener('input', calculate);
         document.getElementById('cartridgeVolume').addEventListener('input', calculate);
+        document.getElementById('availableSyrup').addEventListener('input', calculate);
     }
 
     function renderPresetDropdown() {
@@ -419,7 +428,6 @@
                 logoContainer.innerHTML = '';
             }
 
-            // Löschen-Button nur anzeigen, wenn es eine eigene Vorlage ist
             const deleteBtn = document.getElementById('deletePresetBtn');
             const isCustom = customPresets.some(p => p.id === selectedId);
             deleteBtn.style.display = isCustom ? 'block' : 'none';
@@ -540,6 +548,7 @@
         const origRatio = parseFloat(document.getElementById('origRatio').value);
         const targetRatio = parseFloat(document.getElementById('targetRatio').value);
         const cartridgeVolume = parseFloat(document.getElementById('cartridgeVolume').value);
+        const availableSyrupInput = document.getElementById('availableSyrup').value;
 
         const warningBox = document.getElementById('warningBox');
         const resultsBox = document.getElementById('resultsBox');
@@ -557,13 +566,30 @@
         warningBox.style.display = 'none';
         resultsBox.style.display = 'block';
 
-        const totalDrinkMl = cartridgeVolume * targetRatio;
-        const requiredSyrupMl = totalDrinkMl / origRatio;
-        const requiredWaterMl = cartridgeVolume - requiredSyrupMl;
+        // Berechne ideal benötigten Sirup
+        const standardTotalDrinkMl = cartridgeVolume * targetRatio;
+        const idealSyrupMl = standardTotalDrinkMl / origRatio;
 
-        document.getElementById('syrupResult').innerText = requiredSyrupMl.toFixed(2) + ' ml';
-        document.getElementById('waterResult').innerText = requiredWaterMl.toFixed(2) + ' ml';
-        document.getElementById('totalDrinkResult').innerText = (totalDrinkMl / 1000).toFixed(2) + ' Liter';
+        let actualSyrupMl = idealSyrupMl;
+        let isRest = false;
+
+        // Falls ein Rest-Wert eingetragen ist und dieser kleiner als das Ideal ist
+        if (availableSyrupInput !== '' && !isNaN(parseFloat(availableSyrupInput))) {
+            const parsedAvailable = parseFloat(availableSyrupInput);
+            if (parsedAvailable >= 0 && parsedAvailable < idealSyrupMl) {
+                actualSyrupMl = parsedAvailable;
+                isRest = true;
+            }
+        }
+
+        // Neuberechnung basierend auf dem tatsächlich verfügbaren Sirup
+        const actualTotalDrinkMl = actualSyrupMl * origRatio;
+        const actualWaterMl = (actualTotalDrinkMl / targetRatio) - actualSyrupMl;
+
+        document.getElementById('syrupLabel').innerText = isRest ? 'Sirup-Rest einfüllen' : 'Sirup einfüllen';
+        document.getElementById('syrupResult').innerText = actualSyrupMl.toFixed(2) + ' ml';
+        document.getElementById('waterResult').innerText = Math.max(0, actualWaterMl).toFixed(2) + ' ml';
+        document.getElementById('totalDrinkResult').innerText = (actualTotalDrinkMl / 1000).toFixed(2) + ' Liter';
     }
 
     init();
