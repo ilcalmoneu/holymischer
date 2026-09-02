@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holy Sirup Umrechner</title>
+    <title>Sirup Umrechner & Vorlagen</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -13,6 +13,8 @@
             --text-muted: #94a3b8;
             --accent-blue: #38bdf8;
             --danger: #ef4444;
+            --input-bg: #0f172a;
+            --border: #334155;
         }
 
         body {
@@ -38,6 +40,22 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        .logo-container {
+            text-align: center;
+            margin-bottom: 12px;
+            min-height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-img {
+            max-height: 65px;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
         h1 {
             font-size: 22px;
             margin-top: 0;
@@ -54,8 +72,59 @@
             margin-bottom: 20px;
         }
 
+        .preset-section {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .preset-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--input-bg);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: #000;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--border);
+            color: var(--text);
+        }
+
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         label {
@@ -79,36 +148,56 @@
             font-weight: 600;
         }
 
-        input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #334155;
-            background-color: #0f172a;
-            color: var(--text);
-            font-size: 16px;
-            outline: none;
-            box-sizing: border-box;
-        }
-
         input.has-prefix {
             padding-left: 42px;
         }
 
-        input:focus {
-            border-color: var(--primary);
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            background-color: var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .save-preset-box {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
         }
 
         .results {
             margin-top: 20px;
             padding-top: 16px;
-            border-top: 1px solid #334155;
+            border-top: 1px solid var(--border);
         }
 
         .result-card {
-            background-color: #0f172a;
+            background-color: var(--input-bg);
             border-radius: 12px;
-            padding: 14px 16px;
+            padding: 12px 16px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
@@ -126,18 +215,13 @@
         }
 
         .result-value {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: var(--text);
         }
 
-        .result-value.primary {
-            color: var(--primary);
-        }
-
-        .result-value.accent {
-            color: var(--accent-blue);
-        }
+        .result-value.primary { color: var(--primary); }
+        .result-value.accent { color: var(--accent-blue); }
 
         .warning {
             color: var(--danger);
@@ -154,9 +238,45 @@
 <body>
 
 <div class="container">
-    <h1>Holy Sirup Umrechner</h1>
-    <p class="subtitle">Mische fremden Sirup passend für deine Holy Kartusche</p>
+    <div class="logo-container" id="logoContainer">
+        <!-- Logo wird hier dynamisch angezeigt -->
+    </div>
 
+    <h1>Sirup Umrechner</h1>
+    <p class="subtitle">Mischungsverhältnisse anpassen & speichern</p>
+
+    <!-- Vorlagen Bereich -->
+    <div class="preset-section">
+        <label>Vorlage auswählen</label>
+        <div class="preset-row">
+            <select id="presetSelect" onchange="loadSelectedPreset()"></select>
+            <button class="btn btn-danger" id="deletePresetBtn" onclick="deleteCurrentPreset()" title="Vorlage löschen">✕</button>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            <button class="btn btn-secondary" style="width: 100%;" onclick="toggleSaveBox()">+ Neue Vorlage / Logo erstellen</button>
+        </div>
+
+        <div class="save-preset-box" id="savePresetBox">
+            <div class="form-group">
+                <label for="newPresetName">Name der Vorlage</label>
+                <input type="text" id="newPresetName" placeholder="z. B. Holy Kartusche">
+            </div>
+            
+            <div class="form-group">
+                <label>Logo hinzufügen (optional)</label>
+                <div class="file-input-wrapper">
+                    <label for="logoFileInput" class="file-label">Bild wählen</label>
+                    <input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoSelect(event)">
+                    <span class="file-name" id="fileNameDisplay">Kein Bild gewählt</span>
+                </div>
+            </div>
+
+            <button class="btn" style="width: 100%;" onclick="saveAsPreset()">Vorlage speichern</button>
+        </div>
+    </div>
+
+    <!-- Eingabefelder -->
     <div class="form-group">
         <label for="origRatio">Hersteller-Verhältnis (1 : X)</label>
         <div class="input-wrapper">
@@ -166,7 +286,7 @@
     </div>
 
     <div class="form-group">
-        <label for="targetRatio">Holy Ziel-Verhältnis (1 : X)</label>
+        <label for="targetRatio">Ziel-Verhältnis (1 : X)</label>
         <div class="input-wrapper">
             <span class="input-prefix">1 :</span>
             <input type="number" id="targetRatio" class="has-prefix" value="24" min="1" step="1">
@@ -174,33 +294,150 @@
     </div>
 
     <div class="form-group">
-        <label for="cartridgeVolume">Kartuschen-Volumen (ml)</label>
+        <label for="cartridgeVolume">Kartuschen / Behälter-Volumen (ml)</label>
         <input type="number" id="cartridgeVolume" value="85" min="1" step="1">
     </div>
 
     <div id="warningBox" class="warning">
-        Der Quellsirup ist schwächer als 1:24 und kann nicht weiter mit Wasser verdünnt werden!
+        Der Quellsirup ist schwächer als das Ziel-Verhältnis und kann nicht weiter verdünnt werden!
     </div>
 
+    <!-- Ergebnisse -->
     <div class="results" id="resultsBox">
         <div class="result-card highlight">
             <div class="result-label">Sirup einfüllen</div>
-            <div class="result-value primary" id="syrupResult">14.57 ml</div>
+            <div class="result-value primary" id="syrupResult">0 ml</div>
         </div>
 
         <div class="result-card">
             <div class="result-label">Wasser auffüllen</div>
-            <div class="result-value accent" id="waterResult">70.43 ml</div>
+            <div class="result-value accent" id="waterResult">0 ml</div>
         </div>
 
         <div class="result-card">
             <div class="result-label">Ergibt Fertiggetränk</div>
-            <div class="result-value" id="totalDrinkResult">2.04 Liter</div>
+            <div class="result-value" id="totalDrinkResult">0 Liter</div>
         </div>
     </div>
 </div>
 
 <script>
+    const DEFAULT_PRESETS = [
+        { id: 'holy_default', name: 'Holy Kartusche', targetRatio: 24, volume: 85, logo: '' }
+    ];
+
+    let presets = JSON.parse(localStorage.getItem('syrup_presets')) || DEFAULT_PRESETS;
+    let tempLogoBase64 = '';
+
+    function init() {
+        renderPresetDropdown();
+        loadSelectedPreset();
+
+        document.getElementById('origRatio').addEventListener('input', calculate);
+        document.getElementById('targetRatio').addEventListener('input', calculate);
+        document.getElementById('cartridgeVolume').addEventListener('input', calculate);
+    }
+
+    function renderPresetDropdown() {
+        const select = document.getElementById('presetSelect');
+        select.innerHTML = '';
+        
+        presets.forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.id;
+            option.textContent = preset.name;
+            select.appendChild(option);
+        });
+    }
+
+    function loadSelectedPreset() {
+        const select = document.getElementById('presetSelect');
+        const selectedId = select.value;
+        const preset = presets.find(p => p.id === selectedId);
+
+        if (preset) {
+            document.getElementById('targetRatio').value = preset.targetRatio;
+            document.getElementById('cartridgeVolume').value = preset.volume;
+            
+            // Logo anzeigen oder ausblenden
+            const logoContainer = document.getElementById('logoContainer');
+            if (preset.logo) {
+                logoContainer.innerHTML = `<img src="${preset.logo}" class="logo-img" alt="Logo">`;
+            } else {
+                logoContainer.innerHTML = '';
+            }
+
+            // Löschen-Button Deaktivieren bei Standard-Einträgen
+            document.getElementById('deletePresetBtn').style.display = presets.length > 1 ? 'block' : 'none';
+
+            calculate();
+        }
+    }
+
+    function toggleSaveBox() {
+        const box = document.getElementById('savePresetBox');
+        box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function handleLogoSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById('fileNameDisplay').textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempLogoBase64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function saveAsPreset() {
+        const nameInput = document.getElementById('newPresetName');
+        const name = nameInput.value.trim();
+
+        if (!name) {
+            alert('Bitte gib einen Namen für die Vorlage ein.');
+            return;
+        }
+
+        const newPreset = {
+            id: 'preset_' + Date.now(),
+            name: name,
+            targetRatio: parseFloat(document.getElementById('targetRatio').value),
+            volume: parseFloat(document.getElementById('cartridgeVolume').value),
+            logo: tempLogoBase64
+        };
+
+        presets.push(newPreset);
+        localStorage.setItem('syrup_presets', JSON.stringify(presets));
+
+        renderPresetDropdown();
+        document.getElementById('presetSelect').value = newPreset.id;
+        
+        // Formular zurücksetzen
+        nameInput.value = '';
+        document.getElementById('logoFileInput').value = '';
+        document.getElementById('fileNameDisplay').textContent = 'Kein Bild gewählt';
+        tempLogoBase64 = '';
+        toggleSaveBox();
+
+        loadSelectedPreset();
+    }
+
+    function deleteCurrentPreset() {
+        const select = document.getElementById('presetSelect');
+        const selectedId = select.value;
+
+        if (presets.length <= 1) return;
+
+        if (confirm('Möchtest du diese Vorlage wirklich löschen?')) {
+            presets = presets.filter(p => p.id !== selectedId);
+            localStorage.setItem('syrup_presets', JSON.stringify(presets));
+            renderPresetDropdown();
+            loadSelectedPreset();
+        }
+    }
+
     function calculate() {
         const origRatio = parseFloat(document.getElementById('origRatio').value);
         const targetRatio = parseFloat(document.getElementById('targetRatio').value);
@@ -231,11 +468,7 @@
         document.getElementById('totalDrinkResult').innerText = (totalDrinkMl / 1000).toFixed(2) + ' Liter';
     }
 
-    document.getElementById('origRatio').addEventListener('input', calculate);
-    document.getElementById('targetRatio').addEventListener('input', calculate);
-    document.getElementById('cartridgeVolume').addEventListener('input', calculate);
-
-    calculate();
+    init();
 </script>
 
 </body>
