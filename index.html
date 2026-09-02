@@ -336,7 +336,6 @@
         <input type="number" id="cartridgeVolume" value="85" min="1" step="1">
     </div>
 
-    <!-- NEUES OPTIONALES FELD -->
     <div class="form-group">
         <label for="availableSyrup" style="margin-bottom: 2px;">Verfügbarer Sirup (ml) - optional</label>
         <input type="number" id="availableSyrup" placeholder="z. B. 12 (leer lassen für volles Rezept)" min="0" step="0.1">
@@ -356,6 +355,12 @@
         <div class="result-card">
             <div class="result-label">Wasser auffüllen</div>
             <div class="result-value accent" id="waterResult">0 ml</div>
+        </div>
+
+        <!-- NEUES FELD FÜR DIE GESAMTMENGE IM BEHÄLTER -->
+        <div class="result-card">
+            <div class="result-label">Behälter-Füllmenge (Gesamt)</div>
+            <div class="result-value" id="containerTotalResult">0 ml</div>
         </div>
 
         <div class="result-card">
@@ -566,14 +571,12 @@
         warningBox.style.display = 'none';
         resultsBox.style.display = 'block';
 
-        // Berechne ideal benötigten Sirup
         const standardTotalDrinkMl = cartridgeVolume * targetRatio;
         const idealSyrupMl = standardTotalDrinkMl / origRatio;
 
         let actualSyrupMl = idealSyrupMl;
         let isRest = false;
 
-        // Falls ein Rest-Wert eingetragen ist und dieser kleiner als das Ideal ist
         if (availableSyrupInput !== '' && !isNaN(parseFloat(availableSyrupInput))) {
             const parsedAvailable = parseFloat(availableSyrupInput);
             if (parsedAvailable >= 0 && parsedAvailable < idealSyrupMl) {
@@ -582,13 +585,14 @@
             }
         }
 
-        // Neuberechnung basierend auf dem tatsächlich verfügbaren Sirup
         const actualTotalDrinkMl = actualSyrupMl * origRatio;
-        const actualWaterMl = (actualTotalDrinkMl / targetRatio) - actualSyrupMl;
+        const actualWaterMl = Math.max(0, (actualTotalDrinkMl / targetRatio) - actualSyrupMl);
+        const containerTotalMl = actualSyrupMl + actualWaterMl;
 
         document.getElementById('syrupLabel').innerText = isRest ? 'Sirup-Rest einfüllen' : 'Sirup einfüllen';
         document.getElementById('syrupResult').innerText = actualSyrupMl.toFixed(2) + ' ml';
-        document.getElementById('waterResult').innerText = Math.max(0, actualWaterMl).toFixed(2) + ' ml';
+        document.getElementById('waterResult').innerText = actualWaterMl.toFixed(2) + ' ml';
+        document.getElementById('containerTotalResult').innerText = containerTotalMl.toFixed(2) + ' ml';
         document.getElementById('totalDrinkResult').innerText = (actualTotalDrinkMl / 1000).toFixed(2) + ' Liter';
     }
 
