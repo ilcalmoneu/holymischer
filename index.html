@@ -127,12 +127,35 @@
             margin-bottom: 14px;
         }
 
+        .label-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
         label {
             display: block;
             font-size: 13px;
             font-weight: 600;
-            margin-bottom: 6px;
             color: var(--text);
+        }
+
+        .btn-holy-quick {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-holy-quick:active {
+            background-color: var(--primary);
+            color: #000;
         }
 
         .input-wrapper {
@@ -239,32 +262,32 @@
 
 <div class="container">
     <div class="logo-container" id="logoContainer">
-        <!-- Logo wird hier dynamisch angezeigt -->
-    </div>
+        </div>
 
     <h1>Sirup Umrechner</h1>
     <p class="subtitle">Mischungsverhältnisse anpassen & speichern</p>
 
-    <!-- Vorlagen Bereich -->
     <div class="preset-section">
-        <label>Vorlage auswählen</label>
+        <label style="margin-bottom: 6px;">Vorlage auswählen</label>
         <div class="preset-row">
             <select id="presetSelect" onchange="loadSelectedPreset()"></select>
-            <button class="btn btn-danger" id="deletePresetBtn" onclick="deleteCurrentPreset()" title="Vorlage löschen">✕</button>
         </div>
         
         <div style="margin-top: 10px;">
-            <button class="btn btn-secondary" style="width: 100%;" onclick="toggleSaveBox()">+ Neue Vorlage / Logo erstellen</button>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="toggleSaveBox()">+ Neue Vorlage</button>
         </div>
 
         <div class="save-preset-box" id="savePresetBox">
             <div class="form-group">
-                <label for="newPresetName">Name der Vorlage</label>
-                <input type="text" id="newPresetName" placeholder="z. B. Holy Kartusche">
+                <div class="label-header">
+                    <label for="newPresetName">Name der Vorlage</label>
+                    <button type="button" class="btn btn-danger" onclick="toggleSaveBox()" style="padding: 2px 8px; font-size: 11px;" title="Schließen">✕</button>
+                </div>
+                <input type="text" id="newPresetName" placeholder="z. B. SodaStream Flasche">
             </div>
             
             <div class="form-group">
-                <label>Logo hinzufügen (optional)</label>
+                <label style="margin-bottom: 6px;">Logo hinzufügen (optional)</label>
                 <div class="file-input-wrapper">
                     <label for="logoFileInput" class="file-label">Bild wählen</label>
                     <input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoSelect(event)">
@@ -276,9 +299,8 @@
         </div>
     </div>
 
-    <!-- Eingabefelder -->
     <div class="form-group">
-        <label for="origRatio">Hersteller-Verhältnis (1 : X)</label>
+        <label for="origRatio" style="margin-bottom: 6px;">Hersteller-Verhältnis (1 : X)</label>
         <div class="input-wrapper">
             <span class="input-prefix">1 :</span>
             <input type="number" id="origRatio" class="has-prefix" value="140" min="1" step="1">
@@ -286,7 +308,10 @@
     </div>
 
     <div class="form-group">
-        <label for="targetRatio">Ziel-Verhältnis (1 : X)</label>
+        <div class="label-header">
+            <label for="targetRatio">Ziel-Verhältnis (1 : X)</label>
+            <button type="button" class="btn-holy-quick" onclick="resetToHoly()">Holy Syrup (Standard)</button>
+        </div>
         <div class="input-wrapper">
             <span class="input-prefix">1 :</span>
             <input type="number" id="targetRatio" class="has-prefix" value="24" min="1" step="1">
@@ -294,7 +319,7 @@
     </div>
 
     <div class="form-group">
-        <label for="cartridgeVolume">Kartuschen / Behälter-Volumen (ml)</label>
+        <label for="cartridgeVolume" style="margin-bottom: 6px;">Kartuschen / Behälter-Volumen (ml)</label>
         <input type="number" id="cartridgeVolume" value="85" min="1" step="1">
     </div>
 
@@ -302,7 +327,6 @@
         Der Quellsirup ist schwächer als das Ziel-Verhältnis und kann nicht weiter verdünnt werden!
     </div>
 
-    <!-- Ergebnisse -->
     <div class="results" id="resultsBox">
         <div class="result-card highlight">
             <div class="result-label">Sirup einfüllen</div>
@@ -323,7 +347,22 @@
 
 <script>
     const DEFAULT_PRESETS = [
-        { id: 'holy_default', name: 'Holy Kartusche', targetRatio: 24, volume: 85, logo: '' }
+        { 
+            id: 'Pfanner Zero Sirup', 
+            name: 'Pfanner Zero Sirup', 
+            origRatio: 140,
+            targetRatio: 24, 
+            volume: 85, 
+            logo: 'holy-logo.png' 
+        },
+        { 
+            id: 'More Zerup', 
+            name: 'More Zerup', 
+            origRatio: 154,
+            targetRatio: 24, 
+            volume: 85, 
+            logo: 'More_Zerup.png' 
+        }
     ];
 
     let presets = JSON.parse(localStorage.getItem('syrup_presets')) || DEFAULT_PRESETS;
@@ -356,10 +395,10 @@
         const preset = presets.find(p => p.id === selectedId);
 
         if (preset) {
+            document.getElementById('origRatio').value = preset.origRatio || 140;
             document.getElementById('targetRatio').value = preset.targetRatio;
             document.getElementById('cartridgeVolume').value = preset.volume;
             
-            // Logo anzeigen oder ausblenden
             const logoContainer = document.getElementById('logoContainer');
             if (preset.logo) {
                 logoContainer.innerHTML = `<img src="${preset.logo}" class="logo-img" alt="Logo">`;
@@ -367,11 +406,15 @@
                 logoContainer.innerHTML = '';
             }
 
-            // Löschen-Button Deaktivieren bei Standard-Einträgen
-            document.getElementById('deletePresetBtn').style.display = presets.length > 1 ? 'block' : 'none';
-
             calculate();
         }
+    }
+
+    function resetToHoly() {
+        document.getElementById('origRatio').value = 140;
+        document.getElementById('targetRatio').value = 24;
+        document.getElementById('cartridgeVolume').value = 85;
+        calculate();
     }
 
     function toggleSaveBox() {
@@ -381,14 +424,42 @@
 
     function handleLogoSelect(event) {
         const file = event.target.files[0];
-        if (file) {
-            document.getElementById('fileNameDisplay').textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                tempLogoBase64 = e.target.result;
+        if (!file) return;
+
+        document.getElementById('fileNameDisplay').textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 300;
+                const MAX_HEIGHT = 150;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                tempLogoBase64 = canvas.toDataURL('image/png');
             };
-            reader.readAsDataURL(file);
-        }
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 
     function saveAsPreset() {
@@ -403,18 +474,23 @@
         const newPreset = {
             id: 'preset_' + Date.now(),
             name: name,
+            origRatio: parseFloat(document.getElementById('origRatio').value),
             targetRatio: parseFloat(document.getElementById('targetRatio').value),
             volume: parseFloat(document.getElementById('cartridgeVolume').value),
             logo: tempLogoBase64
         };
 
-        presets.push(newPreset);
-        localStorage.setItem('syrup_presets', JSON.stringify(presets));
+        try {
+            presets.push(newPreset);
+            localStorage.setItem('syrup_presets', JSON.stringify(presets));
+        } catch (e) {
+            alert('Der Speicherplatz des Browsers ist voll.');
+            return;
+        }
 
         renderPresetDropdown();
         document.getElementById('presetSelect').value = newPreset.id;
         
-        // Formular zurücksetzen
         nameInput.value = '';
         document.getElementById('logoFileInput').value = '';
         document.getElementById('fileNameDisplay').textContent = 'Kein Bild gewählt';
@@ -422,20 +498,6 @@
         toggleSaveBox();
 
         loadSelectedPreset();
-    }
-
-    function deleteCurrentPreset() {
-        const select = document.getElementById('presetSelect');
-        const selectedId = select.value;
-
-        if (presets.length <= 1) return;
-
-        if (confirm('Möchtest du diese Vorlage wirklich löschen?')) {
-            presets = presets.filter(p => p.id !== selectedId);
-            localStorage.setItem('syrup_presets', JSON.stringify(presets));
-            renderPresetDropdown();
-            loadSelectedPreset();
-        }
     }
 
     function calculate() {
